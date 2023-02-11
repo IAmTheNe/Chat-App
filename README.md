@@ -1,6 +1,15 @@
 # chat_app
 
-A new Flutter project.
+This is a basic chat app project
+
+## Demo
+<img height="380px" src="screenshots\Screenshot_1676099809.png"
+     alt="Home Page"
+     style="float: left; margin-right: 10px;" />
+<img height="380px" src="screenshots\Screenshot_1676099858.png"
+     alt="Chat"
+     style="float: left; margin-right: 10px;" />
+     
 
 ## Getting Started
 
