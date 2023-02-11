@@ -6,10 +6,13 @@ This is a basic chat app project
 <img height="380px" src="screenshot\Screenshot_1676099809.png"
      alt="Home Page"
      style="float: left; margin-right: 10px;" />
-<img height="380px" src="screenshot\Screenshot_1676099858.png"
+<img height="380px" src="screenshot\Screenshot_1676100635.png"
      alt="Chat"
      style="float: left; margin-right: 10px;" />
-     
+
+<img height="380px" src="screenshot\Screenshot_1676100663.png"
+     alt="Chat"
+     style="float: left; margin-right: 10px;" />
 
 ## Getting Started
 
