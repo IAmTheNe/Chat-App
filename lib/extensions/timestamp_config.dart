@@ -22,4 +22,14 @@ extension TimeFormatter on Timestamp {
     }
     return DateFormat('MMM dd yyyy HH:mm').format(date);
   }
+
+  toShorterCustomTime() {
+    final date = toDate();
+    bool isToday = date.day == DateTime.now().day;
+    if (isToday) {
+      return DateFormat('HH:mm').format(date);
+    }
+
+    return DateFormat.E().format(date);
+  }
 }

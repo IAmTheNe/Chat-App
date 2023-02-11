@@ -6,11 +6,13 @@ class Contact {
   final String displayName;
   final String email;
   final String avatar;
+  final List? contact;
   Contact({
     required this.uid,
     required this.displayName,
     required this.email,
     required this.avatar,
+    this.contact,
   });
 
   Contact copyWith({
@@ -35,6 +37,17 @@ class Contact {
       displayName: q['displayName'],
       email: q['email'],
       avatar: q['avatar'],
+      contact: q['contact'],
+    );
+  }
+
+  factory Contact.fromDocumentSnapshot(DocumentSnapshot doc) {
+    return Contact(
+      uid: doc.id,
+      displayName: doc['displayName'],
+      email: doc['email'],
+      avatar: doc['avatar'],
+      contact: doc['contact'],
     );
   }
 }

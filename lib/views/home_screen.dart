@@ -1,9 +1,14 @@
+import 'package:async/async.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../configs/app_route.dart';
-
+import '../extensions/timestamp_config.dart';
+import '../models/contact.dart';
+import '../models/message.dart';
 import '../utils/firebase_auth_services.dart';
+import '../utils/firestore_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,7 +20,6 @@ class HomeScreen extends StatelessWidget {
         slivers: [
           SliverAppBar(
             pinned: true,
-            expandedHeight: .2.sh,
             centerTitle: true,
             backgroundColor: Theme.of(context).colorScheme.primary,
             title: const Text(
@@ -61,24 +65,128 @@ class HomeScreen extends StatelessWidget {
               ),
             ],
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) => const ListTile(
-                title: Text(
-                  'Trần Nguyên Thế',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
+          FutureBuilder(
+            future: FirebaseAuthServices.instance!.getCurrentUser,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting ||
+                  !snapshot.hasData) {
+                return const SliverToBoxAdapter(
+                  child: Center(
+                    child: CircularProgressIndicator.adaptive(),
                   ),
-                ),
-                subtitle: Text(
-                  'Ước gì mai mình đi Trà sữa Map! 🤡🤡🤡',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                trailing: Text('22:34'),
-              ),
-              childCount: 15,
-            ),
+                );
+              }
+              final fromUser = snapshot.data!.uid;
+              return StreamBuilder(
+                stream: FirebaseFirestoreService.instance
+                    .currentUserInformation(fromUser),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return SliverToBoxAdapter(
+                      child: Center(
+                        child: Text(
+                          snapshot.error.toString(),
+                        ),
+                      ),
+                    );
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const SliverToBoxAdapter(
+                      child: Center(
+                        child: CircularProgressIndicator.adaptive(),
+                      ),
+                    );
+                  }
+                  final contact = snapshot.data?['contact'] ?? [];
+                  if (contact.isEmpty) {
+                    return const SliverToBoxAdapter(
+                      child: Center(
+                        child: Text('No contact!'),
+                      ),
+                    );
+                  }
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final toUser = contact[index];
+
+                        return StreamBuilder(
+                          stream: StreamZip(
+                            [
+                              FirebaseFirestoreService.instance
+                                  .currentUserInformation(contact[index]),
+                              FirebaseFirestoreService.instance
+                                  .fetchAllMessages()
+                            ],
+                          ).asyncMap(
+                            (event) => [
+                              event[0],
+                              event[1],
+                            ],
+                          ),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: CircularProgressIndicator.adaptive(),
+                              );
+                            }
+                            final user = snapshot.data?[0] as DocumentSnapshot?;
+
+                            final chatDocs =
+                                (snapshot.data?[1] as QuerySnapshot?)?.docs;
+                            final messages = Message.allMessage(chatDocs!);
+                            final conditionMessages =
+                                Message.getMessagesWithCondition(
+                              messages,
+                              fromUser,
+                              toUser,
+                            );
+                            var lastestMessage = conditionMessages.firstWhere(
+                                (element) =>
+                                    (element.fromUser == fromUser &&
+                                        element.toUser == toUser) ||
+                                    (element.fromUser == toUser &&
+                                        element.toUser == fromUser));
+                            return ListTile(
+                              title: Text(
+                                user?['displayName'],
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Text(
+                                lastestMessage.message,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              trailing: Text(lastestMessage.createdAt
+                                  .toShorterCustomTime()),
+                              leading: CircleAvatar(
+                                child: ClipRRect(
+                                  child: Image.network(
+                                    user?['avatar'],
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              onTap: () {
+                                Navigator.of(context).pushNamed(
+                                  AppRoute.chat,
+                                  arguments:
+                                      Contact.fromDocumentSnapshot(user!),
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                      childCount: contact == null ? 0 : contact.length,
+                    ),
+                  );
+                },
+              );
+            },
           ),
         ],
       ),

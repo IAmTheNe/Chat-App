@@ -1,10 +1,8 @@
-import 'package:chat_app/configs/app_route.dart';
-import 'package:chat_app/views/home_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../configs/app_route.dart';
 import '../models/exceptions.dart';
 import '../utils/firebase_auth_services.dart';
 import '../widgets/styled_button.dart';
@@ -16,15 +14,7 @@ class EmailSignInScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return const HomeScreen();
-        }
-        return const SignInView();
-      },
-    );
+    return const SignInView();
   }
 }
 
@@ -40,6 +30,7 @@ class SignInView extends StatelessWidget {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
+        automaticallyImplyLeading: false,
       ),
       body: Container(
         margin: EdgeInsets.only(top: 8.h),
@@ -87,7 +78,9 @@ class SignInView extends StatelessWidget {
             StyledButton(
               text: 'Sign in with Google',
               icon: FontAwesomeIcons.google,
-              onPressed: () {},
+              onPressed: () {
+                FirebaseAuthServices.instance!.signInWithGoogle();
+              },
             ),
             const Spacer(),
           ],

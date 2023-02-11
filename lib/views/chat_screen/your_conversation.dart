@@ -26,7 +26,7 @@ class YourConversation extends StatelessWidget {
         right: 8.w,
       ),
       child: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestoreService.instance.fetchAllMessages(contact.uid),
+        stream: FirebaseFirestoreService.instance.fetchAllMessages(),
         builder: (_, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -50,7 +50,6 @@ class YourConversation extends StatelessWidget {
               child: Text('No message'),
             );
           }
-
           return ListView.builder(
             reverse: true,
             itemBuilder: (context, index) {

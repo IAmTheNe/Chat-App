@@ -13,6 +13,10 @@ class AuthenticationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leadingWidth: 0,
+      ),
       body: Column(
         children: [
           Expanded(

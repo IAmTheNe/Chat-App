@@ -16,17 +16,27 @@ class FirebaseFirestoreService {
 
   void storeUser(User? user) async {
     final docRef = _db.collection('user').doc(user!.uid);
-    await docRef.set({
-      'displayName': user.displayName,
-      'email': user.email,
-      'creationTime': user.metadata.creationTime,
-      'avatar': user.photoURL ??
-          'https://firebasestorage.googleapis.com/v0/b/chatty-app-c401c.appspot.com/o/avatars%2Fdefault%2Fdefault-avatar-profile-trendy-style-social-media-user-icon-187599373.jpg?alt=media&token=a0e3f474-b1ea-4e9f-a6c8-3aef7cb1b97c',
-    });
+    await docRef.set(
+      {
+        'displayName': user.displayName,
+        'email': user.email,
+        'creationTime': user.metadata.creationTime,
+        'contact': [],
+        'avatar': user.photoURL ??
+            'https://firebasestorage.googleapis.com/v0/b/chatty-app-c401c.appspot.com/o/avatars%2Fdefault%2Fdefault-avatar-profile-trendy-style-social-media-user-icon-187599373.jpg?alt=media&token=a0e3f474-b1ea-4e9f-a6c8-3aef7cb1b97c',
+      },
+      SetOptions(
+        mergeFields: [
+          'displayName',
+          'email',
+          'avatar',
+          'creationTime',
+        ],
+      ),
+    );
   }
 
-  Stream<QuerySnapshot> fetchAllMessages(String toUser) {
-    String fromUser = FirebaseAuth.instance.currentUser!.uid;
+  Stream<QuerySnapshot> fetchAllMessages() {
     return _db
         .collection('chat')
         .orderBy('createdAt', descending: true)
@@ -40,12 +50,14 @@ class FirebaseFirestoreService {
     required Timestamp createdAt,
     List<File>? files,
   }) async {
-    final collection = _db.collection('chat').doc();
+    final ref = _db.collection('chat').doc();
     final url = await FirebaseStorageServices.instance.uploadImage(
-      collection.id,
+      ref.id,
       files,
     );
-    await collection.set({
+    addContactList(id1: userSendId, id2: userReceiveId);
+    addContactList(id1: userReceiveId, id2: userSendId);
+    await ref.set({
       'message': message?.trim(),
       'fromUser': userSendId,
       'toUser': userReceiveId,
@@ -69,5 +81,35 @@ class FirebaseFirestoreService {
     }
 
     return contacts;
+  }
+
+  void addContactList({
+    required String id1,
+    required String id2,
+  }) async {
+    final docRef = _db.collection('user').doc(id1);
+    final snapshot = await docRef.get();
+
+    final contactList = snapshot.data()?['contact'] ?? [];
+    if (contactList.isEmpty) {
+      docRef.update({
+        'contact': [
+          id2,
+        ]
+      });
+    } else {
+      if (!contactList.contains(id2)) {
+        docRef.update({
+          'contact': [...contactList, id2]
+        });
+      }
+    }
+  }
+
+  Stream<DocumentSnapshot> currentUserInformation([String? id]) {
+    return _db
+        .collection('user')
+        .doc(id ?? FirebaseAuth.instance.currentUser!.uid)
+        .snapshots();
   }
 }

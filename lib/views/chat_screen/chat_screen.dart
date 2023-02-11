@@ -1,3 +1,4 @@
+import 'package:chat_app/configs/app_route.dart';
 import 'package:chat_app/models/contact.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -16,6 +17,14 @@ class ChatScreen extends StatelessWidget {
     final contact = ModalRoute.of(context)!.settings.arguments as Contact;
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, '/');
+          },
+          icon: const Icon(
+            Icons.arrow_back,
+          ),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

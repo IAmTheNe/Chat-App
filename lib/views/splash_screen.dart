@@ -21,7 +21,7 @@ class SplashScreen extends StatelessWidget {
               if (snapshot.hasData) {
                 return const HomeScreen();
               }
-              return const AuthenticationScreen();
+              return const EmailSignInScreen();
             },
           );
         } else {
@@ -37,9 +37,8 @@ class SplashView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: const Center(
+    return const Scaffold(
+      body: Center(
         child: Text('Demo Splash Screen trong 3s'),
       ),
     );
